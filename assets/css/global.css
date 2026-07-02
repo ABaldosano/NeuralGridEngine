@@ -60,17 +60,9 @@ body {
   min-height: 100dvh;
 }
 
-/* Recognize page: lock to viewport on screens tall/wide enough to fit
-   everything without scrolling; on small screens allow natural scroll
-   instead of clipping the board, prediction card, or controls. */
-@media (min-width: 900px) and (min-height: 760px) {
-  body.page-recognize {
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-    overscroll-behavior: none;
-  }
-}
+/* Page layout flows naturally (scrolls if content + footer exceed
+   viewport height) rather than locking to a fixed viewport, so the
+   footer always has room below the board on every screen size. */
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -572,3 +564,72 @@ button.danger { background: transparent; color: var(--danger); border-color: var
   font-size: 16px; /* prevents iOS auto-zoom on focus */
 }
 .train-page input[hidden] { display: none; }
+
+a, button, input, textarea, select {
+  touch-action: manipulation;
+}
+
+/* ==========================================================================
+   FOOTER SIGNATURE & BRAND COMPONENT
+   ========================================================================== */
+
+footer {
+  padding: 32px 60px;
+  background: var(--bg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  transition: background 0.3s, border-color 0.3s;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+footer p {
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+}
+.footer-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.footer-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.footer-icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 10px 0;
+}
+.footer-icon-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  transition: color 0.2s, border-color 0.2s, transform 0.2s;
+}
+.footer-icon-link:hover {
+  color: var(--text);
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+  footer { padding: 24px; flex-direction: column; text-align: center; gap: 10px; }
+  .footer-left { align-items: center; }
+}
