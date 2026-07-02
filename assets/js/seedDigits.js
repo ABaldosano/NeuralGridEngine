@@ -2,10 +2,11 @@
 
 /**
  * SeedDigits
- * Generates a small synthetic dataset of hand-drawn-looking digits
- * (0-9) by stroking vector paths onto an offscreen canvas with random
- * jitter, so the network has baseline knowledge of all ten digits
- * before any user supervision happens.
+ * Generates a large synthetic dataset of hand-drawn-looking digits
+ * (0-9) via pure pixel-math line rasterization (thick-stroke stamping
+ * along jittered vector paths) — no canvas/DOM calls, so it stays
+ * fast even at hundreds of samples per digit and can run off the
+ * main thread if needed.
  */
 const SeedDigits = {
   PATHS: {
@@ -22,65 +23,83 @@ const SeedDigits = {
   },
 
   /**
-   * Draws one jittered instance of a digit path onto a 28x28 canvas
-   * and returns the normalized input vector.
+   * Renders one jittered instance of a digit directly into a flat
+   * 28x28 pixel buffer (0..255) and returns the normalized vector.
    * @param {number} digit
+   * @param {number} [size=28]
    * @returns {number[]}
    */
-  renderSample(digit) {
-    const size = 28;
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, size, size);
+  renderSample(digit, size = 28) {
+    const pixels = new Array(size * size).fill(0);
 
-    const dx = randomFloat(-1.5, 1.5);
-    const dy = randomFloat(-1.5, 1.5);
-    const scale = randomFloat(0.9, 1.1);
+    const dx = randomFloat(-2.6, 2.6);
+    const dy = randomFloat(-2.6, 2.6);
+    const scaleX = randomFloat(0.72, 1.28);
+    const scaleY = randomFloat(0.72, 1.28);
+    const angle = degreesToRadians(randomFloat(-18, 18));
+    const thickness = randomFloat(1.3, 3.4);
+    const vertexJitter = randomFloat(0, 1.1);
     const cx = size / 2;
     const cy = size / 2;
-    const angle = degreesToRadians(randomFloat(-8, 8));
-
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = randomFloat(2.2, 3.2);
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
 
     const transform = ([x, y]) => {
-      let px = (x - cx) * scale;
-      let py = (y - cy) * scale;
+      const jx = x + randomFloat(-vertexJitter, vertexJitter);
+      const jy = y + randomFloat(-vertexJitter, vertexJitter);
+      const px = (jx - cx) * scaleX;
+      const py = (jy - cy) * scaleY;
       const rx = px * Math.cos(angle) - py * Math.sin(angle);
       const ry = px * Math.sin(angle) + py * Math.cos(angle);
       return [rx + cx + dx, ry + cy + dy];
     };
 
     for (const stroke of SeedDigits.PATHS[digit]) {
-      ctx.beginPath();
-      stroke.forEach((point, i) => {
-        const [x, y] = transform(point);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
+      for (let i = 0; i < stroke.length - 1; i++) {
+        const [x0, y0] = transform(stroke[i]);
+        const [x1, y1] = transform(stroke[i + 1]);
+        SeedDigits._drawThickLine(pixels, size, x0, y0, x1, y1, thickness);
+      }
     }
 
-    const imageData = ctx.getImageData(0, 0, size, size);
-    const rawPixels = [];
-    for (let i = 0; i < imageData.data.length; i += 4) {
-      rawPixels.push(imageData.data[i]);
+    return normalizePixels(pixels);
+  },
+
+  /** Stamps overlapping soft disks along a segment to fake stroke width. */
+  _drawThickLine(pixels, size, x0, y0, x1, y1, thickness) {
+    const length = Math.hypot(x1 - x0, y1 - y0);
+    const steps = Math.max(Math.ceil(length * 1.5), 1);
+    const radius = thickness / 2;
+    for (let s = 0; s <= steps; s++) {
+      const t = s / steps;
+      SeedDigits._stampDisk(pixels, size, x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, radius);
     }
-    return normalizePixels(rawPixels);
+  },
+
+  /** Softly stamps a small disk of "ink" centered at (cx, cy). */
+  _stampDisk(pixels, size, cx, cy, radius) {
+    const minX = Math.max(0, Math.floor(cx - radius));
+    const maxX = Math.min(size - 1, Math.ceil(cx + radius));
+    const minY = Math.max(0, Math.floor(cy - radius));
+    const maxY = Math.min(size - 1, Math.ceil(cy + radius));
+
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
+        const distance = Math.hypot(x - cx, y - cy);
+        if (distance <= radius + 0.5) {
+          const intensity = 255 * clamp(1 - distance / (radius + 0.6), 0, 1);
+          const index = y * size + x;
+          if (intensity > pixels[index]) pixels[index] = intensity;
+        }
+      }
+    }
   },
 
   /**
-   * Builds a labeled dataset covering digits 0-9 with several
-   * jittered variants each, for baseline pretraining.
-   * @param {number} [variantsPerDigit=25]
+   * Builds a labeled dataset covering digits 0-9 with many jittered
+   * variants each, for baseline pretraining.
+   * @param {number} [variantsPerDigit=220]
    * @returns {Array<{input:number[], label:number}>}
    */
-  generateDataset(variantsPerDigit = 25) {
+  generateDataset(variantsPerDigit = 220) {
     const dataset = [];
     for (let digit = 0; digit <= 9; digit++) {
       for (let v = 0; v < variantsPerDigit; v++) {

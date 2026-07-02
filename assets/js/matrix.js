@@ -35,6 +35,24 @@ class Matrix {
     return matrix;
   }
 
+  /**
+   * He (Kaiming) initialization: weights drawn from N(0, sqrt(2/fanIn)).
+   * Standard random init in [-1,1] is far too large for high-dimensional
+   * inputs (e.g. 784-pixel images) — it saturates the first layer's
+   * pre-activations, which saturates softmax at init and starves
+   * backprop of usable gradient, causing training to collapse toward
+   * a single output class regardless of input.
+   * @param {number} rows - output size
+   * @param {number} cols - input size (fan-in)
+   * @returns {Matrix}
+   */
+  static heInit(rows, cols) {
+    const matrix = new Matrix(rows, cols);
+    const standardDeviation = Math.sqrt(2 / cols);
+    matrix.data = matrix.data.map((row) => row.map(() => gaussianRandom(0, standardDeviation)));
+    return matrix;
+  }
+
   map(fn) {
     if (!isFunction(fn)) throw new TypeError("Matrix.map: fn must be a function");
     this.data = this.data.map((row, i) => row.map((value, j) => fn(value, i, j)));

@@ -19,8 +19,8 @@ class Layer {
     this.outputSize = outputSize;
     this.activationName = activationName;
 
-    this.weights = Matrix.randomize(outputSize, inputSize);
-    this.biases = Matrix.randomize(outputSize, 1);
+    this.weights = Matrix.heInit(outputSize, inputSize);
+    this.biases = new Matrix(outputSize, 1);
 
     this.lastInput = null;
     this.lastZ = null;

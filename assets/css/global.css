@@ -1,77 +1,137 @@
 * { box-sizing: border-box; }
 
 body {
-  font-family: sans-serif;
-  text-align: center;
-  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  margin: 0;
+  background: #f7f7f9;
+  color: #1a1a1a;
 }
 
+.topnav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 14px 24px;
+  background: #111827;
+}
+
+.topnav .brand {
+  color: #fff;
+  font-weight: 700;
+  margin-right: auto;
+}
+
+.topnav a {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.topnav a.active,
+.topnav a:hover {
+  color: #fff;
+}
+
+main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+  text-align: center;
+}
+
+h1 { font-size: 22px; margin-bottom: 4px; }
+.subtitle { color: #6b7280; font-size: 14px; margin-top: 0; margin-bottom: 24px; }
+
 canvas {
-  border: 1px solid #333;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   background: #000;
   cursor: crosshair;
   touch-action: none;
 }
 
-#controls {
-  margin-top: 10px;
-}
+#controls { margin-top: 14px; }
 
 button {
-  padding: 8px 16px;
+  padding: 9px 18px;
   margin: 0 5px;
   font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
   cursor: pointer;
 }
 
-#output {
-  margin-top: 15px;
-  font-size: 16px;
+button.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+button.danger { background: #dc2626; color: #fff; border-color: #dc2626; }
+
+.result-card {
+  margin: 24px auto 0;
+  padding: 20px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  max-width: 220px;
 }
 
-#correction {
-  margin-top: 15px;
-  padding: 12px;
-  border: 1px solid #ccc;
-  max-width: 320px;
-  margin-left: auto;
-  margin-right: auto;
+.result-digit { font-size: 48px; font-weight: 700; color: #111827; }
+.result-confidence { font-size: 13px; color: #6b7280; margin-top: 4px; }
+
+#statusMessage { min-height: 18px; font-size: 13px; color: #2563eb; margin-top: 14px; }
+
+.train-page { max-width: 640px; text-align: left; }
+.train-page h1, .train-page .subtitle { text-align: center; }
+
+.panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
 }
 
-#digitGrid {
+.panel h2 { font-size: 15px; margin-top: 0; }
+
+.digit-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 12px;
+  list-style: none;
+  padding: 0;
 }
 
-#digitGrid button {
-  margin: 0;
-  padding: 8px 0;
-}
-
-#correctBtn {
-  background: #1a7f37;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-}
-
-#statusMessage {
-  min-height: 20px;
-  font-size: 14px;
-  color: #1a7f37;
-}
-
-#modelControls {
-  margin-top: 15px;
+.stats-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
   font-size: 13px;
-  color: #555;
+  color: #374151;
+  columns: 2;
 }
 
-#resetBtn {
-  background: #b91c1c;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
+.log-box {
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: 12px;
+  padding: 10px;
+  border-radius: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+.train-page label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.train-page input {
+  display: block;
+  margin-top: 4px;
+  padding: 6px 8px;
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
 }

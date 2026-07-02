@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Train Your Own Model — NeuralGrid</title>
+<link rel="stylesheet" href="assets/css/global.css">
+</head>
+<body>
+
+  <nav class="topnav">
+    <span class="brand">NeuralGrid</span>
+    <a href="index.html">Recognize</a>
+    <a href="train.html" class="active">Train Your Own Model</a>
+  </nav>
+
+  <main class="train-page">
+    <h1>Train Your Own Model</h1>
+    <p class="subtitle">This is an isolated sandbox. It never affects the production recognizer.</p>
+
+    <section class="panel">
+      <h2>1. Add a labeled sample</h2>
+      <canvas id="drawCanvas" width="280" height="280"></canvas>
+      <div id="controls">
+        <button id="clearBtn">Clear</button>
+      </div>
+      <div id="digitGrid" class="digit-grid"></div>
+    </section>
+
+    <section class="panel">
+      <h2>2. Dataset</h2>
+      <ul id="datasetStats" class="stats-list"></ul>
+      <button id="clearDatasetBtn" class="danger">Clear Dataset</button>
+    </section>
+
+    <section class="panel">
+      <h2>3. Hyperparameters</h2>
+      <label>Epochs <input type="number" id="epochsInput" value="60" min="1" max="1000"></label>
+      <label>Learning rate <input type="number" id="lrInput" value="0.05" min="0.001" max="1" step="0.001"></label>
+      <button id="trainBtn" class="primary">Train Model</button>
+    </section>
+
+    <section class="panel">
+      <h2>4. Training Log</h2>
+      <pre id="trainingLog" class="log-box"></pre>
+    </section>
+
+    <section class="panel">
+      <h2>5. Model</h2>
+      <button id="exportBtn">Export Model (JSON)</button>
+      <button id="resetModelBtn" class="danger">Reset Model</button>
+    </section>
+
+    <section class="panel">
+      <h2>6. Test Your Model</h2>
+      <p class="subtitle" style="margin-top:0">Draw a digit above, then predict with your trained model.</p>
+      <div id="testControls">
+        <button id="testPredictBtn" class="primary">Predict</button>
+      </div>
+      <div id="testResult" class="result-card" hidden>
+        <div class="result-digit" id="testPredictionLabel">-</div>
+        <div class="result-confidence" id="testConfidenceLabel"></div>
+      </div>
+      <p id="testStatusMessage" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script src="assets/js/functions.js"></script>
+  <script src="assets/js/matrix.js"></script>
+  <script src="assets/js/vector.js"></script>
+  <script src="assets/js/activation.js"></script>
+  <script src="assets/js/loss.js"></script>
+  <script src="assets/js/optimizer.js"></script>
+  <script src="assets/js/layer.js"></script>
+  <script src="assets/js/neuralNetwork.js"></script>
+  <script src="assets/js/model.js"></script>
+  <script src="assets/js/preprocessing.js"></script>
+  <script src="assets/js/seedDigits.js"></script>
+  <script src="assets/js/renderer.js"></script>
+  <script src="assets/js/train-app.js"></script>
+</body>
+</html>
