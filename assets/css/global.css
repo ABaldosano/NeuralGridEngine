@@ -201,7 +201,7 @@ h2 { font-family: 'Playfair Display', serif; font-weight: 600; }
 .hamburger.open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
 .mobile-menu {
-  display: none;
+  display: flex;
   position: fixed;
   top: 0;
   right: 0;
@@ -217,6 +217,10 @@ h2 { font-family: 'Playfair Display', serif; font-weight: 600; }
   gap: 4px;
   padding: 90px 28px 28px;
   box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.28s ease;
 }
 .mobile-menu a {
   color: var(--muted);
@@ -231,19 +235,25 @@ h2 { font-family: 'Playfair Display', serif; font-weight: 600; }
 .mobile-menu a.active, .mobile-menu a:hover { color: var(--gold); }
 
 .mobile-menu-overlay {
-  display: none;
+  display: block;
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
   z-index: 800;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
 }
 
-body.menu-open .mobile-menu,
-body.menu-open .mobile-menu-overlay {
-  display: flex;
+.mobile-menu.open {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
 }
-body.menu-open .mobile-menu-overlay { display: block; }
-body.menu-open { overflow: hidden; }
+.mobile-menu-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
 
 @media (max-width: 720px) {
   .nav-links { display: none; }
@@ -288,7 +298,7 @@ main.recognize-page {
 @media (max-width: 480px) {
   main { padding: 18px 14px; }
   .board-row { gap: 16px; }
-  #drawCanvas { width: 240px; height: 240px; }
+  #drawCanvas, #testDrawCanvas { width: 240px; height: 240px; }
   .result-card { width: 240px; height: 240px; }
   .network-viz-wrap { width: 100%; max-width: 320px; }
 }
@@ -301,7 +311,8 @@ main.recognize-page {
   flex-wrap: wrap;
 }
 
-#drawCanvas {
+#drawCanvas,
+#testDrawCanvas {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: #000;
@@ -378,7 +389,8 @@ button.danger { background: transparent; color: var(--danger); border-color: var
   gap: 8px;
 }
 
-#networkCanvas {
+#networkCanvas,
+#testNetworkCanvas {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: #000;
@@ -389,7 +401,8 @@ button.danger { background: transparent; color: var(--danger); border-color: var
 }
 
 @supports (aspect-ratio: 1080 / 840) {
-  #networkCanvas {
+  #networkCanvas,
+  #testNetworkCanvas {
     height: auto;
     aspect-ratio: 1080 / 840;
   }
@@ -400,8 +413,92 @@ button.danger { background: transparent; color: var(--danger); border-color: var
 
 #statusMessage, #testStatusMessage { min-height: 18px; font-size: 0.78rem; color: var(--gold-dim); margin-top: 16px; }
 
-.train-page { max-width: 640px; text-align: left; overflow-y: auto; }
+.train-page { max-width: 1220px; width: 100%; text-align: left; overflow-x: hidden; overflow-y: auto; }
 .train-page h1, .train-page .subtitle { text-align: center; }
+
+.train-panels-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 720px) {
+  .train-panels-row { grid-template-columns: 1fr; }
+}
+
+.train-panels-row .panel,
+.model-panel {
+  text-align: center;
+}
+.train-panels-row .panel #drawCanvas,
+.train-panels-row .panel .digit-grid,
+.train-panels-row .panel .stats-list {
+  margin-left: auto;
+  margin-right: auto;
+}
+.train-panels-row .panel label { text-align: center; }
+
+.model-panel .board-row { gap: 14px; }
+.model-name-input {
+  padding: 10px 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  min-width: 200px;
+}
+.model-name-input:focus { outline: none; border-color: var(--gold); }
+
+.test-model-section {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.test-model-section h2 {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.draw-canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.model-name {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+}
+
+.panel-hint {
+  font-size: 0.76rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: -8px 0 14px;
+}
+
+.result-card {
+  animation: result-fade-in 0.28s ease;
+}
+@keyframes result-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .result-card { animation: none; }
+}
 
 .panel {
   background: var(--card-bg);
@@ -474,3 +571,4 @@ button.danger { background: transparent; color: var(--danger); border-color: var
   appearance: none;
   font-size: 16px; /* prevents iOS auto-zoom on focus */
 }
+.train-page input[hidden] { display: none; }

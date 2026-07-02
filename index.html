@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NeuralGrid — Handwriting Recognition</title>
+<meta name="description" content="NeuralGrid recognizes handwritten digits in real time using Mercury 0.1, a neural network trained from scratch in the browser, with a live visualization of every activation.">
+<title>NeuralGrid | Handwriting Recognition</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/global.css">
@@ -29,20 +30,23 @@
     </button>
   </nav>
 
-  <div id="mobileMenu" class="mobile-menu" hidden>
+  <div id="mobileMenu" class="mobile-menu">
     <a href="index.html" class="active">Recognize</a>
     <a href="train.html">Train Your Own Model</a>
   </div>
-  <div id="mobileMenuOverlay" class="mobile-menu-overlay" hidden></div>
+  <div id="mobileMenuOverlay" class="mobile-menu-overlay"></div>
 
   <main class="recognize-page">
     <h1>Handwritten Digit Recognition</h1>
-    <p class="subtitle">Draw a digit and get an instant prediction.</p>
+    <p class="subtitle">Draw any digit from 0–9 and watch the network read it, node by node, in real time.</p>
 
     <div class="board-row">
-      <canvas id="drawCanvas" width="280" height="280"></canvas>
+      <div class="draw-canvas-wrap">
+        <canvas id="drawCanvas" width="280" height="280" aria-label="Digit drawing canvas"></canvas>
+        <p class="model-name">Model: Mercury 0.1</p>
+      </div>
       <div class="network-viz-wrap">
-        <canvas id="networkCanvas" width="1080" height="840"></canvas>
+        <canvas id="networkCanvas" width="1080" height="840" aria-label="Live neural network activation visualization"></canvas>
         <ul id="networkLegend" class="network-legend">
           <li><span class="dot" style="background:#202020"></span>Inactive</li>
           <li><span class="dot" style="background:#3B82F6"></span>Low</li>

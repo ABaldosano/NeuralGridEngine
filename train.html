@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Train your own handwritten digit recognition model from scratch in an isolated sandbox: label samples, tune hyperparameters, train, test, and export or import models.">
 <title>Train Your Own Model | NeuralGrid</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -29,60 +30,86 @@
     </button>
   </nav>
 
-  <div id="mobileMenu" class="mobile-menu" hidden>
+  <div id="mobileMenu" class="mobile-menu">
     <a href="index.html">Recognize</a>
     <a href="train.html" class="active">Train Your Own Model</a>
   </div>
-  <div id="mobileMenuOverlay" class="mobile-menu-overlay" hidden></div>
+  <div id="mobileMenuOverlay" class="mobile-menu-overlay"></div>
 
   <main class="train-page">
     <h1>Train Your Own Model</h1>
     <p class="subtitle">This is an isolated sandbox. It never affects the production recognizer.</p>
 
-    <section class="panel">
-      <h2>1. Add a labeled sample</h2>
-      <canvas id="drawCanvas" width="280" height="280"></canvas>
-      <div id="controls">
-        <button id="clearBtn">Clear</button>
+    <div class="train-panels-row">
+      <section class="panel">
+        <h2>1. Add a labeled sample</h2>
+        <p class="panel-hint">Draw a digit, then click the matching number below to save it to your dataset.</p>
+        <canvas id="drawCanvas" width="280" height="280" aria-label="Digit drawing canvas"></canvas>
+        <div id="controls">
+          <button id="clearBtn">Clear</button>
+        </div>
+        <div id="digitGrid" class="digit-grid"></div>
+      </section>
+
+      <section class="panel">
+        <h2>2. Dataset</h2>
+        <p class="panel-hint">Sample counts per digit. More samples per digit generally means a more reliable model.</p>
+        <ul id="datasetStats" class="stats-list"></ul>
+        <button id="clearDatasetBtn" class="danger">Clear Dataset</button>
+      </section>
+
+      <section class="panel">
+        <h2>3. Hyperparameters</h2>
+        <p class="panel-hint">Controls how the network learns. Higher epochs train longer; higher learning rate adjusts faster but can overshoot.</p>
+        <label>Epochs <input type="number" id="epochsInput" value="60" min="1" max="1000"></label>
+        <label>Learning rate <input type="number" id="lrInput" value="0.05" min="0.001" max="1" step="0.001"></label>
+        <button id="trainBtn" class="primary">Train Model</button>
+      </section>
+
+      <section class="panel">
+        <h2>4. Training Log</h2>
+        <p class="panel-hint">Live progress from your last training run, including final average loss.</p>
+        <pre id="trainingLog" class="log-box"></pre>
+      </section>
+    </div>
+
+    <section class="test-model-section">
+      <h2>5. Test Your Model</h2>
+      <p class="subtitle" style="margin-top:0">Draw a digit and predict with your trained model.</p>
+      <div class="board-row">
+        <canvas id="testDrawCanvas" width="280" height="280" aria-label="Digit drawing canvas for testing your model"></canvas>
+        <div class="network-viz-wrap">
+          <canvas id="testNetworkCanvas" width="1080" height="840"></canvas>
+          <ul class="network-legend">
+            <li><span class="dot" style="background:#202020"></span>Inactive</li>
+            <li><span class="dot" style="background:#3B82F6"></span>Low</li>
+            <li><span class="dot" style="background:#22C55E"></span>Medium</li>
+            <li><span class="dot" style="background:#FACC15"></span>High</li>
+            <li><span class="dot" style="background:#EF4444"></span>Very strong</li>
+          </ul>
+        </div>
+        <div id="testResult" class="result-card" hidden>
+          <div class="result-digit" id="testPredictionLabel">-</div>
+          <div class="result-confidence" id="testConfidenceLabel"></div>
+        </div>
       </div>
-      <div id="digitGrid" class="digit-grid"></div>
-    </section>
-
-    <section class="panel">
-      <h2>2. Dataset</h2>
-      <ul id="datasetStats" class="stats-list"></ul>
-      <button id="clearDatasetBtn" class="danger">Clear Dataset</button>
-    </section>
-
-    <section class="panel">
-      <h2>3. Hyperparameters</h2>
-      <label>Epochs <input type="number" id="epochsInput" value="60" min="1" max="1000"></label>
-      <label>Learning rate <input type="number" id="lrInput" value="0.05" min="0.001" max="1" step="0.001"></label>
-      <button id="trainBtn" class="primary">Train Model</button>
-    </section>
-
-    <section class="panel">
-      <h2>4. Training Log</h2>
-      <pre id="trainingLog" class="log-box"></pre>
-    </section>
-
-    <section class="panel">
-      <h2>5. Model</h2>
-      <button id="exportBtn">Export Model (JSON)</button>
-      <button id="resetModelBtn" class="danger">Reset Model</button>
-    </section>
-
-    <section class="panel">
-      <h2>6. Test Your Model</h2>
-      <p class="subtitle" style="margin-top:0">Draw a digit above, then predict with your trained model.</p>
       <div id="testControls">
         <button id="testPredictBtn" class="primary">Predict</button>
-      </div>
-      <div id="testResult" class="result-card" hidden>
-        <div class="result-digit" id="testPredictionLabel">-</div>
-        <div class="result-confidence" id="testConfidenceLabel"></div>
+        <button id="testClearBtn">Clear</button>
       </div>
       <p id="testStatusMessage" aria-live="polite"></p>
+    </section>
+
+    <section class="panel model-panel">
+      <h2>6. Model</h2>
+      <p class="panel-hint">Name, export, or import your model as JSON. Export to back it up or use it elsewhere; import to continue training a saved model.</p>
+      <div class="board-row">
+        <input type="text" id="modelNameInput" class="model-name-input" placeholder="Model name">
+        <button id="exportBtn">Export Model (JSON)</button>
+        <button id="importBtn">Import Model (JSON)</button>
+        <input type="file" id="importFileInput" accept="application/json" hidden>
+        <button id="resetModelBtn" class="danger">Reset Model</button>
+      </div>
     </section>
   </main>
 
@@ -98,6 +125,7 @@
   <script src="assets/js/preprocessing.js"></script>
   <script src="assets/js/seedDigits.js"></script>
   <script src="assets/js/renderer.js"></script>
+  <script src="assets/js/networkViz.js"></script>
   <script src="assets/js/train-app.js"></script>
 </body>
 </html>

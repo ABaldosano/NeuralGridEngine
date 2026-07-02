@@ -19,7 +19,13 @@
   const trainBtn = document.getElementById("trainBtn");
   const trainingLog = document.getElementById("trainingLog");
   const exportBtn = document.getElementById("exportBtn");
+  const importBtn = document.getElementById("importBtn");
+  const importFileInput = document.getElementById("importFileInput");
+  const modelNameInput = document.getElementById("modelNameInput");
   const resetModelBtn = document.getElementById("resetModelBtn");
+  const testDrawCanvas = document.getElementById("testDrawCanvas");
+  const testNetworkCanvas = document.getElementById("testNetworkCanvas");
+  const testClearBtn = document.getElementById("testClearBtn");
   const testPredictBtn = document.getElementById("testPredictBtn");
   const testResult = document.getElementById("testResult");
   const testPredictionLabel = document.getElementById("testPredictionLabel");
@@ -27,6 +33,8 @@
   const testStatusMessage = document.getElementById("testStatusMessage");
 
   CanvasController.init(canvas);
+  const testCanvasController = CanvasController.create(testDrawCanvas);
+  NetworkViz.init(testNetworkCanvas);
 
   let dataset = loadDataset();
   let network = loadOrCreateNetwork();
@@ -65,16 +73,54 @@
     }, 10);
   });
 
+  const LAB_MODEL_NAME_KEY = "neuralgrid-lab-model-name";
+  if (modelNameInput) {
+    modelNameInput.value = localStorage.getItem(LAB_MODEL_NAME_KEY) || "";
+    modelNameInput.addEventListener("input", () => {
+      localStorage.setItem(LAB_MODEL_NAME_KEY, modelNameInput.value);
+    });
+  }
+
   exportBtn.addEventListener("click", () => {
     const json = ModelIO.saveModel(network);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
+    const rawName = (modelNameInput && modelNameInput.value.trim()) || "neuralgrid-lab-model";
+    const safeName = rawName.replace(/[^a-z0-9\-_]+/gi, "-").replace(/^-+|-+$/g, "") || "neuralgrid-lab-model";
     const a = document.createElement("a");
     a.href = url;
-    a.download = "neuralgrid-lab-model.json";
+    a.download = `${safeName}.json`;
     a.click();
     URL.revokeObjectURL(url);
   });
+
+  if (importBtn && importFileInput) {
+    importBtn.addEventListener("click", () => importFileInput.click());
+
+    importFileInput.addEventListener("change", () => {
+      const file = importFileInput.files && importFileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          network = ModelIO.loadModel(reader.result);
+          persistModel();
+          const baseName = file.name.replace(/\.json$/i, "");
+          if (modelNameInput) {
+            modelNameInput.value = baseName;
+            localStorage.setItem(LAB_MODEL_NAME_KEY, baseName);
+          }
+          log(`Imported model "${baseName}".`);
+        } catch (err) {
+          log(`Import failed: ${err.message || "invalid model file"}`);
+        } finally {
+          importFileInput.value = "";
+        }
+      };
+      reader.onerror = () => log("Import failed: could not read file.");
+      reader.readAsText(file);
+    });
+  }
 
   resetModelBtn.addEventListener("click", () => {
     if (!confirm("Reset the lab model? Dataset is kept.")) return;
@@ -89,6 +135,13 @@
    * except the network here is the lab model trained on the dataset
    * the user built above, not the baked-in production baseline.
    */
+  testClearBtn.addEventListener("click", () => {
+    testCanvasController.clear();
+    testResult.hidden = true;
+    testStatusMessage.textContent = "";
+    NetworkViz.init(testNetworkCanvas);
+  });
+
   testPredictBtn.addEventListener("click", () => {
     if (network.trainingSteps === 0) {
       testStatusMessage.textContent = "Train the model at least once before predicting.";
@@ -96,13 +149,14 @@
       return;
     }
 
-    const inputVector = Preprocessing.canvasToInputVector(canvas, 28);
+    const inputVector = Preprocessing.canvasToInputVector(testDrawCanvas, 28);
     const result = network.predict(inputVector);
 
     testPredictionLabel.textContent = result.prediction;
     testConfidenceLabel.textContent = `Confidence: ${percentage(result.confidence)}`;
     testResult.hidden = false;
     testStatusMessage.textContent = "";
+    NetworkViz.render(inputVector, network.getActivations(), result.prediction);
   });
 
   function buildDigitGrid() {

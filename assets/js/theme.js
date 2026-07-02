@@ -24,23 +24,23 @@
 
     const closeMenu = () => {
       hamburger.classList.remove("open");
+      mobileMenu.classList.remove("open");
+      overlay.classList.remove("open");
       hamburger.setAttribute("aria-expanded", "false");
-      mobileMenu.hidden = true;
-      overlay.hidden = true;
-      document.body.classList.remove("menu-open");
+      document.body.style.overflow = "";
     };
 
     const openMenu = () => {
       hamburger.classList.add("open");
+      mobileMenu.classList.add("open");
+      overlay.classList.add("open");
       hamburger.setAttribute("aria-expanded", "true");
-      mobileMenu.hidden = false;
-      overlay.hidden = false;
-      document.body.classList.add("menu-open");
+      document.body.style.overflow = "hidden";
     };
 
     hamburger.addEventListener("click", () => {
-      if (mobileMenu.hidden) openMenu();
-      else closeMenu();
+      if (mobileMenu.classList.contains("open")) closeMenu();
+      else openMenu();
     });
 
     overlay.addEventListener("click", closeMenu);
