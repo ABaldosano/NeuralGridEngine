@@ -60,12 +60,16 @@ body {
   min-height: 100dvh;
 }
 
-/* Recognize page: lock to viewport, no scroll */
-body.page-recognize {
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
-  overscroll-behavior: none;
+/* Recognize page: lock to viewport on screens tall/wide enough to fit
+   everything without scrolling; on small screens allow natural scroll
+   instead of clipping the board, prediction card, or controls. */
+@media (min-width: 900px) and (min-height: 760px) {
+  body.page-recognize {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -113,6 +117,12 @@ h2 { font-family: 'Playfair Display', serif; font-weight: 600; }
   margin-right: auto;
 }
 
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+
 .topnav a {
   position: relative;
   color: var(--muted);
@@ -123,6 +133,7 @@ h2 { font-family: 'Playfair Display', serif; font-weight: 600; }
   text-transform: uppercase;
   padding-bottom: 4px;
   transition: color 0.2s;
+  white-space: nowrap;
 }
 .topnav a::after {
   content: '';
@@ -161,6 +172,85 @@ h2 { font-family: 'Playfair Display', serif; font-weight: 600; }
 [data-theme="dark"] .t-sun { opacity: 0; }
 [data-theme="dark"] .t-moon { opacity: 1; color: var(--cream); }
 
+/* Hamburger button, hidden on desktop */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.hamburger-bar {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--gold);
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+.hamburger.open .hamburger-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open .hamburger-bar:nth-child(2) { opacity: 0; }
+.hamburger.open .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  height: 100dvh;
+  width: min(78vw, 300px);
+  background: var(--nav-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-left: 1px solid var(--border);
+  z-index: 900;
+  flex-direction: column;
+  gap: 4px;
+  padding: 90px 28px 28px;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+}
+.mobile-menu a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--border-light);
+}
+.mobile-menu a.active, .mobile-menu a:hover { color: var(--gold); }
+
+.mobile-menu-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 800;
+}
+
+body.menu-open .mobile-menu,
+body.menu-open .mobile-menu-overlay {
+  display: flex;
+}
+body.menu-open .mobile-menu-overlay { display: block; }
+body.menu-open { overflow: hidden; }
+
+@media (max-width: 720px) {
+  .nav-links { display: none; }
+  .hamburger { display: flex; }
+  .topnav { padding: 16px 20px; gap: 16px; }
+}
+
 /* ==========================================================================
    3. page layout
    ========================================================================== */
@@ -186,6 +276,23 @@ main.recognize-page {
   overflow: hidden;
 }
 
+@media (max-width: 899px), (max-height: 759px) {
+  main.recognize-page {
+    overflow: visible;
+    justify-content: flex-start;
+    padding-top: 20px;
+    padding-bottom: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  main { padding: 18px 14px; }
+  .board-row { gap: 16px; }
+  #drawCanvas { width: 240px; height: 240px; }
+  .result-card { width: 240px; height: 240px; }
+  .network-viz-wrap { width: 100%; max-width: 320px; }
+}
+
 .board-row {
   display: flex;
   justify-content: center;
@@ -200,6 +307,9 @@ main.recognize-page {
   background: #000;
   cursor: crosshair;
   touch-action: none;
+  width: 280px;
+  height: 280px;
+  max-width: 100%;
 }
 
 .network-legend {
@@ -249,6 +359,7 @@ button.danger { background: transparent; color: var(--danger); border-color: var
 .result-card {
   width: 280px;
   height: 280px;
+  max-width: 100%;
   padding: 22px;
   border-radius: var(--radius);
   background: var(--card-bg);

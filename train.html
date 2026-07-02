@@ -13,14 +13,27 @@
 
   <nav class="topnav">
     <span class="brand">NeuralGrid</span>
-    <a href="index.html">Recognize</a>
-    <a href="train.html" class="active">Train Your Own Model</a>
+    <div class="nav-links">
+      <a href="index.html">Recognize</a>
+      <a href="train.html" class="active">Train Your Own Model</a>
+    </div>
     <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
       <span class="toggle-thumb"></span>
       <span class="t-icon t-sun">&#9728;</span>
       <span class="t-icon t-moon">&#9789;</span>
     </button>
+    <button id="hamburgerBtn" class="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobileMenu">
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+    </button>
   </nav>
+
+  <div id="mobileMenu" class="mobile-menu" hidden>
+    <a href="index.html">Recognize</a>
+    <a href="train.html" class="active">Train Your Own Model</a>
+  </div>
+  <div id="mobileMenuOverlay" class="mobile-menu-overlay" hidden></div>
 
   <main class="train-page">
     <h1>Train Your Own Model</h1>
