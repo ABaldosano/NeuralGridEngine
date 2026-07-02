@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Digit Recognition — NeuralGrid Engine</title>
+<link rel="stylesheet" href="assets/css/global.css">
+</head>
+<body>
+
+  <h1>Handwritten Digit Recognition</h1>
+
+  <canvas id="drawCanvas" width="280" height="280"></canvas>
+
+  <div id="controls">
+    <button id="predictBtn">Predict</button>
+    <button id="clearBtn">Clear</button>
+  </div>
+
+  <div id="output">
+    <p>Prediction: <span id="predictionLabel">-</span></p>
+    <p>Confidence: <span id="confidenceLabel">-</span></p>
+  </div>
+
+  <div id="correction" hidden>
+    <p>Was that correct?</p>
+    <button id="correctBtn">Yes, correct</button>
+    <p>If not, tap the right digit:</p>
+    <div id="digitGrid"></div>
+  </div>
+
+  <p id="statusMessage"></p>
+
+  <div id="modelControls">
+    <span id="trainingCount">Trained on 0 examples</span>
+    <button id="resetBtn">Reset Model</button>
+  </div>
+
+  <!-- Utility library first: everything below depends on it -->
+  <script src="assets/js/functions.js"></script>
+
+  <!-- Math primitives -->
+  <script src="assets/js/matrix.js"></script>
+  <script src="assets/js/vector.js"></script>
+  <script src="assets/js/activation.js"></script>
+  <script src="assets/js/loss.js"></script>
+  <script src="assets/js/optimizer.js"></script>
+
+  <!-- Network engine -->
+  <script src="assets/js/layer.js"></script>
+  <script src="assets/js/neuralNetwork.js"></script>
+  <script src="assets/js/model.js"></script>
+
+  <!-- Input + rendering -->
+  <script src="assets/js/inputProcessor.js"></script>
+  <script src="assets/js/renderer.js"></script>
+
+  <!-- Synthetic baseline knowledge for digits 0-9 -->
+  <script src="assets/js/seedDigits.js"></script>
+
+  <!-- App wiring, must load last -->
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
