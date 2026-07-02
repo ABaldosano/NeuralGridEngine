@@ -19,6 +19,7 @@
   const statusMessage = document.getElementById("statusMessage");
 
   CanvasController.init(canvas);
+  NetworkViz.init(document.getElementById("networkCanvas"));
 
   const network = loadNetwork();
 
@@ -30,12 +31,14 @@
     confidenceLabel.textContent = `Confidence: ${percentage(result.confidence)}`;
     resultCard.hidden = false;
     statusMessage.textContent = "";
+    NetworkViz.render(inputVector, network.getActivations(), result.prediction);
   });
 
   clearBtn.addEventListener("click", () => {
     CanvasController.clear();
     resultCard.hidden = true;
     statusMessage.textContent = "";
+    NetworkViz.init(document.getElementById("networkCanvas"));
   });
 
   /**

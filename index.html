@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NeuralGrid — Handwriting Recognition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/global.css">
+<script src="assets/js/theme.js"></script>
 </head>
 <body>
 
@@ -12,22 +15,38 @@
     <span class="brand">NeuralGrid</span>
     <a href="index.html" class="active">Recognize</a>
     <a href="train.html">Train Your Own Model</a>
+    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+      <span class="toggle-thumb"></span>
+      <span class="t-icon t-sun">&#9728;</span>
+      <span class="t-icon t-moon">&#9789;</span>
+    </button>
   </nav>
 
   <main class="recognize-page">
     <h1>Handwritten Digit Recognition</h1>
     <p class="subtitle">Draw a digit and get an instant prediction.</p>
 
-    <canvas id="drawCanvas" width="280" height="280"></canvas>
+    <div class="board-row">
+      <canvas id="drawCanvas" width="280" height="280"></canvas>
+      <div class="network-viz-wrap">
+        <canvas id="networkCanvas" width="1080" height="840"></canvas>
+        <ul id="networkLegend" class="network-legend">
+          <li><span class="dot" style="background:#202020"></span>Inactive</li>
+          <li><span class="dot" style="background:#3B82F6"></span>Low</li>
+          <li><span class="dot" style="background:#22C55E"></span>Medium</li>
+          <li><span class="dot" style="background:#FACC15"></span>High</li>
+          <li><span class="dot" style="background:#EF4444"></span>Very strong</li>
+        </ul>
+      </div>
+      <div id="result" class="result-card" hidden>
+        <div class="result-digit" id="predictionLabel">-</div>
+        <div class="result-confidence" id="confidenceLabel"></div>
+      </div>
+    </div>
 
     <div id="controls">
       <button id="predictBtn" class="primary">Predict</button>
       <button id="clearBtn">Clear</button>
-    </div>
-
-    <div id="result" class="result-card" hidden>
-      <div class="result-digit" id="predictionLabel">-</div>
-      <div class="result-confidence" id="confidenceLabel"></div>
     </div>
 
     <p id="statusMessage" aria-live="polite"></p>
@@ -45,6 +64,7 @@
   <script src="assets/js/preprocessing.js"></script>
   <script src="assets/js/seedDigits.js"></script>
   <script src="assets/js/renderer.js"></script>
+  <script src="assets/js/networkViz.js"></script>
   <script src="assets/js/pretrainedModel.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
