@@ -29,14 +29,14 @@
 
     predictionLabel.textContent = result.prediction;
     confidenceLabel.textContent = `Confidence: ${percentage(result.confidence)}`;
-    resultCard.hidden = false;
     statusMessage.textContent = "";
     NetworkViz.render(inputVector, network.getActivations(), result.prediction);
   });
 
   clearBtn.addEventListener("click", () => {
     CanvasController.clear();
-    resultCard.hidden = true;
+    predictionLabel.textContent = "-";
+    confidenceLabel.textContent = "";
     statusMessage.textContent = "";
     NetworkViz.init(document.getElementById("networkCanvas"));
   });

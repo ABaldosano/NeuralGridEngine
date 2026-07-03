@@ -298,7 +298,7 @@ main.recognize-page {
 .board-row {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   gap: 24px;
   flex-wrap: wrap;
 }
@@ -373,6 +373,7 @@ button.danger { background: transparent; color: var(--danger); border-color: var
   justify-content: center;
   box-sizing: border-box;
 }
+.result-card[hidden] { display: none; }
 
 .network-viz-wrap {
   display: flex;
@@ -497,13 +498,30 @@ button.danger { background: transparent; color: var(--danger); border-color: var
   content: "\2212 ";
 }
 .model-story summary:hover { color: var(--text); }
+.draw-canvas-wrap { position: relative; }
+.model-story { position: absolute; top: 100%; left: 0; right: 0; z-index: 50; }
+.model-story-link {
+  display: block;
+  margin-top: 10px;
+  border-radius: var(--radius);
+  transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+}
+
+.model-story-link:hover,
+.model-story-link:focus-visible {
+  opacity: 0.85;
+  transform: scale(1.01);
+}
+.story-spacer { height: 0; transition: height 0.2s ease; }
+main:has(.model-story[open]) .story-spacer { height: 168px; }
 .model-story img {
   display: block;
   width: 100%;
-  margin-top: 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: #000;
+  pointer-events: none;
 }
 
 .panel-hint {
