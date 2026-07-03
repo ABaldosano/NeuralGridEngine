@@ -298,7 +298,7 @@ main.recognize-page {
 .board-row {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   gap: 24px;
   flex-wrap: wrap;
 }
@@ -430,7 +430,7 @@ button.danger { background: transparent; color: var(--danger); border-color: var
 }
 .train-panels-row .panel label { text-align: center; }
 
-.model-panel .board-row { gap: 14px; }
+.model-panel .board-row { gap: 14px; align-items: center; }
 .model-name-input {
   padding: 10px 14px;
   font-family: 'Inter', sans-serif;
@@ -472,6 +472,38 @@ button.danger { background: transparent; color: var(--danger); border-color: var
   text-transform: uppercase;
   color: var(--muted);
   text-align: center;
+}
+
+.model-story {
+  width: 100%;
+  max-width: 280px;
+}
+.model-story summary {
+  cursor: pointer;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-align: center;
+  letter-spacing: 0.04em;
+  list-style: none;
+  padding: 4px 0;
+  transition: color 0.2s;
+}
+.model-story summary::-webkit-details-marker { display: none; }
+.model-story summary::before {
+  content: "+ ";
+  color: var(--gold);
+}
+.model-story[open] summary::before {
+  content: "\2212 ";
+}
+.model-story summary:hover { color: var(--text); }
+.model-story img {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #000;
 }
 
 .panel-hint {

@@ -41,12 +41,18 @@
 
   <main class="recognize-page">
     <h1>Handwritten Digit Recognition</h1>
-    <p class="subtitle">Draw any digit from 0–9 and watch the network read it node by node in real time.</p>
+    <p class="subtitle">Draw any digit from 0–9 and watch the network read it, node by node, in real time.</p>
 
     <div class="board-row">
       <div class="draw-canvas-wrap">
         <canvas id="drawCanvas" width="280" height="280" aria-label="Digit drawing canvas"></canvas>
         <p class="model-name">Model: Mercury 0.1</p>
+        <details class="model-story">
+          <summary>How Mercury 0.1 was made</summary>
+          <a href="train.html" class="model-story-link" title="Train your own model">
+            <img src="assets/images/mercury.gif" alt="Animated recording of Mercury 0.1 being trained by hand in the Train Your Own Model sandbox" loading="lazy">
+          </a>
+        </details>
       </div>
       <div class="network-viz-wrap">
         <canvas id="networkCanvas" width="1080" height="840" aria-label="Live neural network activation visualization"></canvas>
