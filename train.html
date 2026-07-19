@@ -34,6 +34,9 @@
   </nav>
 
   <div id="mobileMenu" class="mobile-menu">
+    <button id="mobileMenuClose" class="mobile-menu-close" aria-label="Close menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
     <a href="index.html">Recognize</a>
     <a href="train.html" class="active">Train Your Own Model</a>
   </div>
@@ -97,8 +100,7 @@
         </div>
       </div>
       <div id="testControls">
-        <button id="testPredictBtn" class="primary">Predict</button>
-        <button id="testClearBtn">Clear</button>
+        <button id="testClearBtn" class="primary">Clear</button>
       </div>
       <p id="testStatusMessage" aria-live="polite"></p>
     </section>

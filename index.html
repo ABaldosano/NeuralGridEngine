@@ -34,6 +34,9 @@
   </nav>
 
   <div id="mobileMenu" class="mobile-menu">
+    <button id="mobileMenuClose" class="mobile-menu-close" aria-label="Close menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
     <a href="index.html" class="active">Recognize</a>
     <a href="train.html">Train Your Own Model</a>
   </div>
@@ -64,15 +67,14 @@
           <li><span class="dot" style="background:#EF4444"></span>Very strong</li>
         </ul>
       </div>
-      <div id="result" class="result-card">
+      <div id="result" class="result-card" hidden>
         <div class="result-digit" id="predictionLabel">-</div>
         <div class="result-confidence" id="confidenceLabel"></div>
       </div>
     </div>
 
     <div id="controls">
-      <button id="predictBtn" class="primary">Predict</button>
-      <button id="clearBtn">Clear</button>
+      <button id="clearBtn" class="primary">Clear</button>
     </div>
 
     <p id="statusMessage" aria-live="polite"></p>

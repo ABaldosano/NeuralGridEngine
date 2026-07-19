@@ -214,6 +214,32 @@ h2 { font-family: 'Playfair Display', serif; font-weight: 600; }
   pointer-events: none;
   transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.28s ease;
 }
+
+/* The hamburger button turns into an X when open, but the panel's
+   z-index (900) sits above the navbar (500), covering it — so that X
+   is invisible and untappable. This close button lives inside the
+   panel itself, in the same top-right spot the hamburger/toggle
+   occupy in the navbar, so there's always a visible, reachable way
+   to dismiss the menu. */
+.mobile-menu-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  color: var(--gold);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.mobile-menu-close:hover { opacity: 0.75; }
+
 .mobile-menu a {
   color: var(--muted);
   text-decoration: none;
@@ -291,8 +317,123 @@ main.recognize-page {
   main { padding: 18px 14px; }
   .board-row { gap: 16px; }
   #drawCanvas, #testDrawCanvas { width: 240px; height: 240px; }
-  .result-card { width: 240px; height: 240px; }
   .network-viz-wrap { width: 100%; max-width: 320px; }
+}
+
+/* ==========================================================================
+   3b. mobile flow: draw -> act -> result, with the network visualization
+   demoted to a secondary section below rather than competing for the
+   same space between the drawing pad and the Predict/Clear buttons.
+   .board-row's own box is removed from layout (display:contents) so its
+   children become direct flex items of main.recognize-page and can be
+   reordered together with #controls and #statusMessage, which live
+   outside .board-row in the markup.
+   ========================================================================== */
+@media (max-width: 720px), (max-height: 759px) {
+  main.recognize-page { align-items: stretch; }
+  main.recognize-page > h1,
+  main.recognize-page > .subtitle { text-align: center; }
+
+  main.recognize-page .board-row { display: contents; }
+
+  main.recognize-page .draw-canvas-wrap { order: 1; }
+  main.recognize-page #controls { order: 2; }
+  main.recognize-page .result-card { order: 3; }
+  main.recognize-page #statusMessage { order: 4; }
+  main.recognize-page .network-viz-wrap { order: 5; margin-top: 8px; }
+  main.recognize-page .story-spacer { display: none; }
+
+  /* The "How it was made" dropdown is position:absolute on desktop,
+     which is safe there because its siblings sit beside it in a flex
+     row, not below it. On mobile everything stacks vertically, so an
+     absolutely-positioned dropdown would float over whatever comes
+     next (the Predict/Clear buttons) instead of pushing them down.
+     Putting it back in normal flow here means it reserves its own
+     space and pushes later content down like any other block. */
+  main.recognize-page .draw-canvas-wrap { position: static; }
+  main.recognize-page .model-story { position: static; margin-top: 4px; }
+
+  main.recognize-page .draw-canvas-wrap,
+  main.recognize-page .result-card,
+  main.recognize-page .network-viz-wrap { align-self: center; }
+
+  main.recognize-page #controls {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    max-width: 280px;
+    margin: 4px auto 0;
+  }
+  main.recognize-page #controls button { min-width: 140px; margin: 0; }
+
+  main.recognize-page .result-card {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    min-height: 120px;
+    padding: 18px;
+    margin-top: 14px;
+  }
+
+  main.recognize-page .network-viz-wrap::before {
+    content: "Network activity";
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Same draw -> act -> result flow as the recognizer page, applied to
+     the "Test Your Model" section of the training lab. There's no
+     .draw-canvas-wrap here (testDrawCanvas is a bare canvas, no model
+     name/story dropdown alongside it), so it's targeted directly. */
+  .test-model-section {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .test-model-section .board-row { display: contents; }
+
+  .test-model-section #testDrawCanvas { order: 1; align-self: center; }
+  .test-model-section #testControls { order: 2; }
+  .test-model-section .result-card { order: 3; align-self: center; }
+  .test-model-section #testStatusMessage { order: 4; }
+  .test-model-section .network-viz-wrap { order: 5; margin-top: 8px; align-self: center; }
+
+  .test-model-section #testControls {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    max-width: 280px;
+    margin: 16px auto 0;
+  }
+  .test-model-section #testControls button { min-width: 140px; margin: 0; }
+
+  .test-model-section .result-card {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    min-height: 120px;
+    padding: 18px;
+    margin-top: 14px;
+  }
+
+  .test-model-section .network-viz-wrap::before {
+    content: "Network activity";
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+}
+
+/* The hide-until-first-prediction behavior for the test result card is
+   a mobile-only affordance, same reasoning as the recognizer page's
+   result card above — always show it on larger screens. */
+@media (min-width: 721px) and (min-height: 760px) {
+  .test-model-section .result-card[hidden] { display: flex; }
 }
 
 .board-row {
@@ -374,6 +515,15 @@ button.danger { background: transparent; color: var(--danger); border-color: var
   box-sizing: border-box;
 }
 .result-card[hidden] { display: none; }
+
+/* The hidden-until-first-prediction behavior is a mobile-only affordance
+   (see the 720px/759px media query below) to avoid an empty result card
+   eating space above the fold. On larger screens the result card is a
+   permanent fixture of the three-panel layout, so it should always be
+   visible, prediction or not — override the [hidden] attribute here. */
+@media (min-width: 721px) and (min-height: 760px) {
+  main.recognize-page .result-card[hidden] { display: flex; }
+}
 
 .network-viz-wrap {
   display: flex;

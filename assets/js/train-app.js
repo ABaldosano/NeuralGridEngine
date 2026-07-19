@@ -8,6 +8,7 @@
 (function initTrainingLab() {
   const LAB_MODEL_KEY = "neuralgrid-lab-model";
   const LAB_DATASET_KEY = "neuralgrid-lab-dataset";
+  const AUTO_PREDICT_DELAY_MS = 100;
 
   const canvas = document.getElementById("drawCanvas");
   const clearBtn = document.getElementById("clearBtn");
@@ -26,7 +27,6 @@
   const testDrawCanvas = document.getElementById("testDrawCanvas");
   const testNetworkCanvas = document.getElementById("testNetworkCanvas");
   const testClearBtn = document.getElementById("testClearBtn");
-  const testPredictBtn = document.getElementById("testPredictBtn");
   const testResult = document.getElementById("testResult");
   const testPredictionLabel = document.getElementById("testPredictionLabel");
   const testConfidenceLabel = document.getElementById("testConfidenceLabel");
@@ -38,6 +38,7 @@
 
   let dataset = loadDataset();
   let network = loadOrCreateNetwork();
+  let autoPredictTimer = null;
 
   buildDigitGrid();
   renderDatasetStats();
@@ -130,25 +131,38 @@
   });
 
   /**
-   * Predict button: same pipeline as the production recognizer's
-   * app.js (canvas -> Preprocessing.canvasToInputVector -> network.predict),
-   * except the network here is the lab model trained on the dataset
-   * the user built above, not the baked-in production baseline.
+   * Same auto-predict pattern as the production recognizer's app.js:
+   * no Predict button — a prediction runs automatically a second
+   * after the user pauses following a stroke. Each new stroke on the
+   * test canvas restarts the timer, so mid-digit pen lifts don't
+   * trigger a premature read.
    */
-  testClearBtn.addEventListener("click", () => {
-    testCanvasController.clear();
-    testResult.hidden = true;
-    testStatusMessage.textContent = "";
-    NetworkViz.init(testNetworkCanvas);
-  });
+  testCanvasController.onStrokeEnd = () => {
+    if (autoPredictTimer) clearTimeout(autoPredictTimer);
 
-  testPredictBtn.addEventListener("click", () => {
     if (network.trainingSteps === 0) {
       testStatusMessage.textContent = "Train the model at least once before predicting.";
       testResult.hidden = true;
       return;
     }
 
+    testStatusMessage.textContent = "Reading…";
+    autoPredictTimer = setTimeout(runTestPrediction, AUTO_PREDICT_DELAY_MS);
+  };
+
+  testClearBtn.addEventListener("click", () => {
+    if (autoPredictTimer) {
+      clearTimeout(autoPredictTimer);
+      autoPredictTimer = null;
+    }
+    testCanvasController.clear();
+    testResult.hidden = true;
+    testStatusMessage.textContent = "";
+    NetworkViz.init(testNetworkCanvas);
+  });
+
+  function runTestPrediction() {
+    autoPredictTimer = null;
     const inputVector = Preprocessing.canvasToInputVector(testDrawCanvas, 28);
     const result = network.predict(inputVector);
 
@@ -157,7 +171,7 @@
     testResult.hidden = false;
     testStatusMessage.textContent = "";
     NetworkViz.render(inputVector, network.getActivations(), result.prediction);
-  });
+  }
 
   function buildDigitGrid() {
     for (let digit = 0; digit <= 9; digit++) {

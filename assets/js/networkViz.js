@@ -22,6 +22,15 @@ const NetworkViz = {
   target: null,
   predictedIndex: null,
 
+  // Perf tuning, resolved once in init() based on device.
+  isMobile: false,
+  useShadow: true,
+  useGradient: true,
+  minSignal: 0,
+  frameInterval: 0,
+  lastFrameTime: 0,
+  settled: true,
+
   LAYER_LABELS: [null, null, null, "0123456789"],
 
   init(canvas) {
@@ -29,7 +38,31 @@ const NetworkViz = {
       throw new TypeError("NetworkViz.init: canvas must be an HTMLCanvasElement");
     }
     this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
+    this.ctx = canvas.getContext("2d", { alpha: false });
+
+    // Cheap, one-time device check. Coarse pointer + narrow viewport is a
+    // reliable enough signal for "phone" without a UA sniff.
+    this.isMobile = window.matchMedia
+      ? window.matchMedia("(max-width: 720px), (pointer: coarse)").matches
+      : /Mobi|Android/i.test(navigator.userAgent || "");
+
+    // On mobile: no per-line gradients, no shadow blur (both are very
+    // costly on Canvas2D, especially on phone GPUs), skip near-zero
+    // connections outright, and cap the redraw rate.
+    this.useGradient = !this.isMobile;
+    this.useShadow = !this.isMobile;
+    this.minSignal = this.isMobile ? 0.06 : 0;
+    this.frameInterval = this.isMobile ? 1000 / 30 : 0;
+
+    // The backing pixel buffer is fixed at 1080x840 in markup, which is
+    // far more resolution than a phone screen shows or needs. Shrinking
+    // the actual drawing surface (not just its CSS size) cuts every
+    // per-pixel canvas operation proportionally.
+    if (this.isMobile) {
+      const targetWidth = Math.min(720, Math.round(canvas.clientWidth * (window.devicePixelRatio || 1)) || 720);
+      canvas.width = targetWidth;
+      canvas.height = Math.round(targetWidth * (840 / 1080));
+    }
 
     const empty = {
       input: new Array(28).fill(0),
@@ -40,8 +73,23 @@ const NetworkViz = {
     this.current = this._cloneFrame(empty);
     this.target = this._cloneFrame(empty);
     this.predictedIndex = null;
+    this.settled = false;
+    this.lastFrameTime = 0;
 
     if (!this.rafId) this._loop();
+
+    if (!NetworkViz._visibilityBound) {
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          if (NetworkViz.rafId) cancelAnimationFrame(NetworkViz.rafId);
+          NetworkViz.rafId = null;
+        } else if (NetworkViz.ctx && !NetworkViz.rafId) {
+          NetworkViz.settled = false;
+          NetworkViz._loop();
+        }
+      });
+      NetworkViz._visibilityBound = true;
+    }
   },
 
   _cloneFrame(frame) {
@@ -84,6 +132,8 @@ const NetworkViz = {
       output: this._normalizeLayer(output),
     };
     this.predictedIndex = predictedIndex;
+    this.settled = false;
+    if (!this.rafId && this.ctx) this._loop();
   },
 
   /** ReLU outputs are unbounded; scale each layer relative to its own max so colors stay meaningful. */
@@ -100,18 +150,43 @@ const NetworkViz = {
     return result;
   },
 
-  /** Continuous animation loop: lerps current -> target and redraws. */
-  _loop() {
-    this.rafId = requestAnimationFrame(() => this._loop());
+  /**
+   * Animation loop: lerps current -> target and redraws. Stops itself
+   * once the frame has visually settled (nothing left to animate) so
+   * an idle chart doesn't burn CPU/battery forever, and re-arms from
+   * render() the moment a new prediction comes in. On mobile the redraw
+   * rate is also capped (default rAF is ~60fps; 30fps is indistinguishable
+   * here and roughly halves per-second canvas work).
+   */
+  _loop(timestamp = 0) {
+    this.rafId = requestAnimationFrame((t) => this._loop(t));
     if (!this.ctx) return;
+
+    if (this.frameInterval && timestamp - this.lastFrameTime < this.frameInterval) return;
+    this.lastFrameTime = timestamp;
 
     this.time += 0.016;
     const lerpFactor = 0.15;
+    let maxDelta = 0;
     ["input", "hidden1", "hidden2", "output"].forEach((key) => {
-      this.current[key] = this.current[key].map((value, i) => lerp(value, this.target[key][i], lerpFactor));
+      this.current[key] = this.current[key].map((value, i) => {
+        const next = lerp(value, this.target[key][i], lerpFactor);
+        maxDelta = Math.max(maxDelta, Math.abs(next - this.target[key][i]));
+        return next;
+      });
     });
 
     this._draw();
+
+    // Once converged, the wave/pulse animation is still subtle motion,
+    // so only fully stop when there's truly nothing on the board (all
+    // targets are zero, e.g. right after clear/init) — that's the case
+    // that otherwise spins the loop forever for no visual benefit.
+    const allZero = ["input", "hidden1", "hidden2", "output"].every((key) => this.target[key].every((v) => v === 0));
+    if (allZero && maxDelta < 0.001) {
+      if (this.rafId) cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
   },
 
   _draw() {
@@ -130,20 +205,30 @@ const NetworkViz = {
       { nodes: this.current.output, raw: this.target.output, labeled: true },
     ];
 
+    // Every fixed-pixel constant below (node radius, glow, line width,
+    // font size, label offsets) was tuned for the reference 1080-wide
+    // canvas. On mobile the canvas's actual backing resolution is
+    // shrunk for performance, so without scaling, those same absolute
+    // pixel values eat up a much bigger share of the smaller canvas —
+    // nodes end up looking oversized. Scaling everything by the ratio
+    // of the real width to the reference width keeps proportions
+    // consistent at any resolution.
+    const scale = width / 1080;
+
     // Slow pseudo-3D parallax: each column drifts slightly on a
     // sine wave, offset by depth, to read as a gently rotating scene.
-    const depthShiftX = 48;
-    const colGap = (width - 200) / (layers.length - 1);
+    const depthShiftX = 48 * scale;
+    const colGap = (width - 200 * scale) / (layers.length - 1);
     const positions = [];
 
     layers.forEach((layer, li) => {
-      const wave = Math.sin(this.time * 0.6 + li * 0.8) * 8;
-      const baseX = 100 + li * colGap - li * depthShiftX + wave;
+      const wave = Math.sin(this.time * 0.6 + li * 0.8) * 8 * scale;
+      const baseX = 100 * scale + li * colGap - li * depthShiftX + wave;
       const n = layer.nodes.length;
-      const rowGap = (height - 90) / Math.max(n - 1, 1);
+      const rowGap = (height - 90 * scale) / Math.max(n - 1, 1);
       const colPositions = [];
       for (let i = 0; i < n; i++) {
-        colPositions.push({ x: baseX, y: 45 + i * rowGap + li * 8 });
+        colPositions.push({ x: baseX, y: 45 * scale + i * rowGap + li * 8 * scale });
       }
       positions.push(colPositions);
     });
@@ -161,28 +246,41 @@ const NetworkViz = {
         for (let j = 0; j < b.length; j++) {
           const bv = bVals[j];
           const signal = Math.max(av, bv);
+          // Below this threshold the line is nearly invisible anyway
+          // (alpha ~0.03-0.05); skipping it outright avoids ~all the
+          // per-line canvas work for the majority of connections, which
+          // are dark/inactive at any given moment.
+          if (signal < this.minSignal) continue;
+
           const pulse = 0.5 + 0.5 * Math.sin(this.time * 3 + (i + j) * 0.35);
           const alpha = 0.03 + signal * 0.55 * pulse;
 
           const from = a[i];
           const to = b[j];
-          const gradient = ctx.createLinearGradient(from.x, from.y, to.x, to.y);
-          const sourceColor = this.colorFor(av);
           const targetColor = this.colorFor(bv);
-          gradient.addColorStop(0, `rgba(${sourceColor.r},${sourceColor.g},${sourceColor.b},${alpha})`);
-          gradient.addColorStop(1, `rgba(${targetColor.r},${targetColor.g},${targetColor.b},${alpha})`);
 
-          ctx.strokeStyle = gradient;
-          ctx.lineWidth = 0.4 + signal * 1.1;
-          if (signal > 0.5) {
+          if (this.useGradient) {
+            const sourceColor = this.colorFor(av);
+            const gradient = ctx.createLinearGradient(from.x, from.y, to.x, to.y);
+            gradient.addColorStop(0, `rgba(${sourceColor.r},${sourceColor.g},${sourceColor.b},${alpha})`);
+            gradient.addColorStop(1, `rgba(${targetColor.r},${targetColor.g},${targetColor.b},${alpha})`);
+            ctx.strokeStyle = gradient;
+          } else {
+            // Solid color instead of a gradient object: visually close
+            // enough for a 2-3px line and far cheaper to set up per draw.
+            ctx.strokeStyle = `rgba(${targetColor.r},${targetColor.g},${targetColor.b},${alpha})`;
+          }
+
+          ctx.lineWidth = (0.4 + signal * 1.1) * scale;
+          if (this.useShadow && signal > 0.5) {
             ctx.shadowColor = this._rgb(targetColor);
-            ctx.shadowBlur = signal * 4;
+            ctx.shadowBlur = signal * 4 * scale;
           }
           ctx.beginPath();
           ctx.moveTo(from.x, from.y);
           ctx.lineTo(to.x, to.y);
           ctx.stroke();
-          ctx.shadowBlur = 0;
+          if (this.useShadow) ctx.shadowBlur = 0;
         }
       }
     }
@@ -195,34 +293,38 @@ const NetworkViz = {
         const color = this.colorFor(value);
         const fill = this._rgb(color);
         const isPredicted = layer.labeled && this.predictedIndex === i;
-        const radius = (isPredicted ? 13 : 10) + value * 4;
-        const glowSize = (isPredicted ? 10 : 6) + value * 30;
+        const radius = ((isPredicted ? 13 : 10) + value * 4) * scale;
+        const glowSize = ((isPredicted ? 10 : 6) + value * 30) * scale;
 
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.fillStyle = fill;
-        ctx.shadowColor = fill;
-        ctx.shadowBlur = glowSize;
+        if (this.useShadow) {
+          ctx.shadowColor = fill;
+          ctx.shadowBlur = glowSize;
+        }
         ctx.fill();
-        ctx.shadowBlur = 0;
+        if (this.useShadow) ctx.shadowBlur = 0;
 
         if (isPredicted) {
-          const ringPulse = 3 + Math.sin(this.time * 4) * 2;
+          const ringPulse = (3 + Math.sin(this.time * 4) * 2) * scale;
           ctx.beginPath();
-          ctx.arc(x, y, radius + 6 + ringPulse, 0, Math.PI * 2);
+          ctx.arc(x, y, radius + 6 * scale + ringPulse, 0, Math.PI * 2);
           ctx.strokeStyle = "#fafafa";
-          ctx.lineWidth = 2.5;
-          ctx.shadowColor = "#fafafa";
-          ctx.shadowBlur = 8;
+          ctx.lineWidth = 2.5 * scale;
+          if (this.useShadow) {
+            ctx.shadowColor = "#fafafa";
+            ctx.shadowBlur = 8 * scale;
+          }
           ctx.stroke();
-          ctx.shadowBlur = 0;
+          if (this.useShadow) ctx.shadowBlur = 0;
         }
 
         if (layer.labeled) {
           ctx.fillStyle = isPredicted ? "#fafafa" : "#e5e5e5";
-          ctx.font = isPredicted ? "bold 22px Inter, sans-serif" : "20px Inter, sans-serif";
+          ctx.font = isPredicted ? `bold ${22 * scale}px Inter, sans-serif` : `${20 * scale}px Inter, sans-serif`;
           ctx.textBaseline = "middle";
-          ctx.fillText(String(i), x + (isPredicted ? 26 : 22), y + 1);
+          ctx.fillText(String(i), x + (isPredicted ? 26 : 22) * scale, y + 1);
         }
       });
     });
@@ -231,9 +333,9 @@ const NetworkViz = {
       const predictedPt = positions[positions.length - 1][this.predictedIndex];
       if (predictedPt) {
         ctx.fillStyle = "#fafafa";
-        ctx.font = "bold 13px Inter, sans-serif";
+        ctx.font = `bold ${13 * scale}px Inter, sans-serif`;
         ctx.textAlign = "center";
-        ctx.fillText("PREDICTED", predictedPt.x, predictedPt.y - 26);
+        ctx.fillText("PREDICTED", predictedPt.x, predictedPt.y - 26 * scale);
         ctx.textAlign = "left";
       }
     }

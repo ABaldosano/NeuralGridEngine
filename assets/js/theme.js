@@ -4,8 +4,10 @@
   const STORAGE_KEY = "neuralgrid-theme";
   const root = document.documentElement;
   const saved = localStorage.getItem(STORAGE_KEY);
-  const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  root.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+  // Light is the product's default look regardless of the device's system
+  // color scheme. Only an explicit in-app toggle (saved below) should
+  // switch a visitor to dark — we don't infer it from OS preference.
+  root.setAttribute("data-theme", saved || "light");
 
   document.addEventListener("DOMContentLoaded", () => {
     const toggle = document.getElementById("themeToggle");
@@ -20,6 +22,7 @@
     const hamburger = document.getElementById("hamburgerBtn");
     const mobileMenu = document.getElementById("mobileMenu");
     const overlay = document.getElementById("mobileMenuOverlay");
+    const closeBtn = document.getElementById("mobileMenuClose");
     if (!hamburger || !mobileMenu || !overlay) return;
 
     const closeMenu = () => {
@@ -44,6 +47,7 @@
     });
 
     overlay.addEventListener("click", closeMenu);
+    if (closeBtn) closeBtn.addEventListener("click", closeMenu);
 
     mobileMenu.querySelectorAll("a").forEach((link) => {
       link.addEventListener("click", closeMenu);
