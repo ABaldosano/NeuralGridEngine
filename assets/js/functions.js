@@ -1,20 +1,5 @@
 "use strict";
 
-/* ==================================================
-   NeuralGrid Engine — functions.js
-   Central reusable utility library.
-   No app logic, no UI, no NN classes — pure helpers
-   consumed by matrix.js, layer.js, neuralNetwork.js,
-   inputProcessor.js, renderer.js, and future modules.
-   ================================================== */
-
-/* ==================================================
-   Math Utilities
-   ==================================================
-   Core numeric building blocks used by activation
-   functions, normalization, and future training code
-   (gradient descent, loss scaling, weight init). */
-
 /**
  * Clamps a value between a minimum and maximum.
  * @param {number} value

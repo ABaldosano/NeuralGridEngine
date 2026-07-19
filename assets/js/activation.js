@@ -1,11 +1,5 @@
 "use strict";
 
-/**
- * Activations
- * Registry mapping activation names to forward/derivative pairs.
- * Element-wise activations reuse functions.js primitives; softmax
- * is exposed separately since it acts on a whole vector at once.
- */
 const Activations = {
   relu: { fn: relu, dfn: reluDerivative },
   sigmoid: { fn: sigmoid, dfn: sigmoidDerivative },

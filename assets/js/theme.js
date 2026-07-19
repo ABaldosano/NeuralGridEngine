@@ -4,9 +4,6 @@
   const STORAGE_KEY = "neuralgrid-theme";
   const root = document.documentElement;
   const saved = localStorage.getItem(STORAGE_KEY);
-  // Light is the product's default look regardless of the device's system
-  // color scheme. Only an explicit in-app toggle (saved below) should
-  // switch a visitor to dark — we don't infer it from OS preference.
   root.setAttribute("data-theme", saved || "light");
 
   document.addEventListener("DOMContentLoaded", () => {

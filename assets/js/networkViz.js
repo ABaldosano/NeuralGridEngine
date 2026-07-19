@@ -1,15 +1,5 @@
 "use strict";
 
-/**
- * NetworkViz
- * Real-time pseudo-3D visualization of the recognizer network, drawn
- * with the project's existing Canvas 2D rendering (no new deps).
- * Layers are laid out as depth-shifted vertical columns (isometric-
- * style offsets) with a slow continuous parallax animation, glowing
- * nodes colored by activation strength, and smooth interpolation
- * between activation frames. The color legend lives in the DOM
- * (see index.html / .network-legend) next to this canvas.
- */
 const NetworkViz = {
   canvas: null,
   ctx: null,
@@ -40,24 +30,15 @@ const NetworkViz = {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d", { alpha: false });
 
-    // Cheap, one-time device check. Coarse pointer + narrow viewport is a
-    // reliable enough signal for "phone" without a UA sniff.
     this.isMobile = window.matchMedia
       ? window.matchMedia("(max-width: 720px), (pointer: coarse)").matches
       : /Mobi|Android/i.test(navigator.userAgent || "");
 
-    // On mobile: no per-line gradients, no shadow blur (both are very
-    // costly on Canvas2D, especially on phone GPUs), skip near-zero
-    // connections outright, and cap the redraw rate.
     this.useGradient = !this.isMobile;
     this.useShadow = !this.isMobile;
     this.minSignal = this.isMobile ? 0.06 : 0;
     this.frameInterval = this.isMobile ? 1000 / 30 : 0;
 
-    // The backing pixel buffer is fixed at 1080x840 in markup, which is
-    // far more resolution than a phone screen shows or needs. Shrinking
-    // the actual drawing surface (not just its CSS size) cuts every
-    // per-pixel canvas operation proportionally.
     if (this.isMobile) {
       const targetWidth = Math.min(720, Math.round(canvas.clientWidth * (window.devicePixelRatio || 1)) || 720);
       canvas.width = targetWidth;
@@ -205,18 +186,8 @@ const NetworkViz = {
       { nodes: this.current.output, raw: this.target.output, labeled: true },
     ];
 
-    // Every fixed-pixel constant below (node radius, glow, line width,
-    // font size, label offsets) was tuned for the reference 1080-wide
-    // canvas. On mobile the canvas's actual backing resolution is
-    // shrunk for performance, so without scaling, those same absolute
-    // pixel values eat up a much bigger share of the smaller canvas —
-    // nodes end up looking oversized. Scaling everything by the ratio
-    // of the real width to the reference width keeps proportions
-    // consistent at any resolution.
     const scale = width / 1080;
 
-    // Slow pseudo-3D parallax: each column drifts slightly on a
-    // sine wave, offset by depth, to read as a gently rotating scene.
     const depthShiftX = 48 * scale;
     const colGap = (width - 200 * scale) / (layers.length - 1);
     const positions = [];
@@ -233,9 +204,6 @@ const NetworkViz = {
       positions.push(colPositions);
     });
 
-    // Connections between adjacent layers: thin lines whose color and
-    // brightness reflect the activation flowing from source to target,
-    // plus a traveling pulse so the light reads as moving along the wire.
     for (let li = 0; li < positions.length - 1; li++) {
       const a = positions[li];
       const b = positions[li + 1];
@@ -246,10 +214,7 @@ const NetworkViz = {
         for (let j = 0; j < b.length; j++) {
           const bv = bVals[j];
           const signal = Math.max(av, bv);
-          // Below this threshold the line is nearly invisible anyway
-          // (alpha ~0.03-0.05); skipping it outright avoids ~all the
-          // per-line canvas work for the majority of connections, which
-          // are dark/inactive at any given moment.
+
           if (signal < this.minSignal) continue;
 
           const pulse = 0.5 + 0.5 * Math.sin(this.time * 3 + (i + j) * 0.35);

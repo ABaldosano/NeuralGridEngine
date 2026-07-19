@@ -1,11 +1,5 @@
 "use strict";
 
-/**
- * Preprocessing
- * Converts a raw drawing canvas into a clean, centered, normalized
- * 28x28 input vector. Used identically by the production recognizer
- * and the training lab so both see the same input distribution.
- */
 const Preprocessing = {
   /**
    * @param {HTMLCanvasElement} sourceCanvas
@@ -73,11 +67,6 @@ const Preprocessing = {
     return { data, width, height };
   },
 
-  /**
-   * Scales the cropped glyph to fit within a 20/28 inner box (preserving
-   * aspect ratio, matching common digit-recognition conventions), then
-   * centers it on a targetSize canvas using center-of-mass alignment.
-   */
   _centerOnCanvas(cropped, targetSize) {
     const innerSize = Math.round(targetSize * (20 / 28));
     const scale = Math.min(innerSize / cropped.width, innerSize / cropped.height);

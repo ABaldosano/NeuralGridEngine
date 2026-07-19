@@ -1,11 +1,5 @@
 "use strict";
 
-/**
- * Optimizer
- * Implements vanilla (stochastic) gradient descent. Given a layer
- * and the gradients computed for it during backpropagation, nudges
- * that layer's weights and biases in the direction that reduces loss.
- */
 class Optimizer {
   constructor(type = "gradientDescent", learningRate = 0.1) {
     if (!isString(type)) throw new TypeError("Optimizer: type must be a string");

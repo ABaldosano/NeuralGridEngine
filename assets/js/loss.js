@@ -1,10 +1,5 @@
 "use strict";
 
-/**
- * Loss
- * Loss functions for future training support. fn computes the scalar
- * loss; dfn computes the gradient with respect to predictions.
- */
 const Loss = {
   crossEntropy: {
     fn: (predicted, target) =>

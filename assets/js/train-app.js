@@ -1,10 +1,5 @@
 "use strict";
 
-/**
- * train-app.js — "Train Your Own Model" sandbox.
- * Fully isolated storage keys (LAB_*) so nothing here ever touches
- * the production recognizer's model or dataset.
- */
 (function initTrainingLab() {
   const LAB_MODEL_KEY = "neuralgrid-lab-model";
   const LAB_DATASET_KEY = "neuralgrid-lab-dataset";
@@ -130,13 +125,6 @@
     log("Lab model reset (untrained).");
   });
 
-  /**
-   * Same auto-predict pattern as the production recognizer's app.js:
-   * no Predict button — a prediction runs automatically a second
-   * after the user pauses following a stroke. Each new stroke on the
-   * test canvas restarts the timer, so mid-digit pen lifts don't
-   * trigger a premature read.
-   */
   testCanvasController.onStrokeEnd = () => {
     if (autoPredictTimer) clearTimeout(autoPredictTimer);
 

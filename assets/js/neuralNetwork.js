@@ -1,10 +1,5 @@
 "use strict";
 
-/**
- * NeuralNetwork
- * Orchestrates an arbitrary stack of Layers based purely on config.
- * No architecture is hardcoded; change ModelConfig to reshape it.
- */
 class NeuralNetwork {
   constructor(config, optimizer = new Optimizer("gradientDescent", 0.05)) {
     if (!isObject(config)) throw new TypeError("NeuralNetwork: config must be an object");

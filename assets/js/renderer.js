@@ -1,10 +1,5 @@
 "use strict";
 
-/**
- * CanvasController
- * Handles mouse + touch drawing on the visible input canvas.
- * Purely presentational — no network or preprocessing logic here.
- */
 const CanvasController = {
   init(canvas) {
     if (!(canvas instanceof HTMLCanvasElement)) {
@@ -75,10 +70,7 @@ const CanvasController = {
   end() {
     const wasDrawing = this.drawing;
     this.drawing = false;
-    // Only fires for a stroke that was actually happening on *this*
-    // canvas — window-level mouseup/touchend listeners catch every
-    // release on the page (e.g. clicking the Clear button), and we
-    // don't want those mistaken for "the user just finished drawing".
+
     if (wasDrawing && typeof this.onStrokeEnd === "function") this.onStrokeEnd();
   },
 

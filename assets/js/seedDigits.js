@@ -1,13 +1,5 @@
 "use strict";
 
-/**
- * SeedDigits
- * Generates a large synthetic dataset of hand-drawn-looking digits
- * (0-9) via pure pixel-math line rasterization (thick-stroke stamping
- * along jittered vector paths) — no canvas/DOM calls, so it stays
- * fast even at hundreds of samples per digit and can run off the
- * main thread if needed.
- */
 const SeedDigits = {
   PATHS: {
     0: [[[14, 4], [8, 8], [6, 14], [6, 20], [8, 24], [14, 26], [20, 24], [22, 20], [22, 14], [20, 8], [14, 4]]],

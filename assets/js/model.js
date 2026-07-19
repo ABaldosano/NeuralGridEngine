@@ -1,10 +1,5 @@
 "use strict";
 
-/**
- * ModelConfig
- * Single source of truth for network architecture. Editing these
- * values reshapes the network without touching engine code.
- */
 const ModelConfig = {
   inputSize: 784,
   hiddenLayers: [
@@ -14,11 +9,6 @@ const ModelConfig = {
   outputLayer: { size: 10, activation: "softmax" },
 };
 
-/**
- * ModelIO
- * Serialization helpers for a NeuralNetwork instance. Kept outside
- * the class so the engine stays storage-agnostic.
- */
 const ModelIO = {
   saveModel(network) {
     if (!(network instanceof NeuralNetwork)) {
