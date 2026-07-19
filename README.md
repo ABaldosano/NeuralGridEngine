@@ -4,18 +4,19 @@ A handwritten digit recognizer built entirely from scratch in vanilla JavaScript
 
 ## What it does
 
-Draw a digit from 0 to 9 on the canvas and the network predicts what you drew, in real time, with a live visualization showing every neuron firing as the prediction happens. The production recognizer ships with Mercury 0.1, a model trained from real user samples rather than a static benchmark dataset.
+Draw a digit from 0 to 9 on the canvas and the network predicts what you drew automatically, about one hundred milisecond after you stop drawing, with a live visualization showing every neuron firing as the prediction happens. The production recognizer ships with Mercury 0.1, a model trained from real user samples rather than a static benchmark dataset.
 
 There is also a full training lab where you can build your own dataset by hand, tune hyperparameters, train a network from a blank slate, test it, and export or import the resulting model as JSON.
 
 ## Features
 
 - Handwriting recognition with a live, animated network activation viewer (input layer through hidden layers to output)
+- Predictions run automatically one hundred milisecond after you finish drawing — no Predict button, just draw and read the result
 - A from-scratch neural network: matrix operations, ReLU and softmax activations, gradient descent, backpropagation, all written manually
 - An isolated "Train Your Own Model" sandbox that never touches the production model
 - Model export and import as JSON, so a trained model can be swapped in as the new baseline
-- Light and dark themes, with the preference saved locally
-- Responsive layout that works down to small phone screens
+- Light and dark themes (light by default), with the preference saved locally
+- Responsive layout tuned for phones as well as desktop, with a reordered mobile flow (draw → result → network activity) and a performance-optimized visualization so it stays smooth on mobile hardware
 
 ## Tech stack
 
@@ -69,7 +70,7 @@ Head to `train.html`. The workflow is:
 1. Draw a digit and label it by clicking the matching number, building up a dataset
 2. Set epochs and learning rate
 3. Train the model
-4. Test it on new drawings, with the same live network visualization used on the recognizer page
+4. Test it on new drawings — the prediction runs automatically one hundred milisecond after you stop drawing, with the same live network visualization used on the recognizer page
 5. Export the trained model as JSON, or import a previously saved one to keep training it
 
 A model trained here can be converted into a new production baseline by swapping it into `pretrainedModel.js`.
